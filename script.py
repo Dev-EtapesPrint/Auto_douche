@@ -1,7 +1,7 @@
 import os
 import datetime
-import logging
 import requests
+import logging
 import serial
 import serial.tools.list_ports
 from urllib.parse import urlparse
@@ -30,6 +30,7 @@ logger.addHandler(handler)
 formatter = logging.Formatter("%(asctime)s - %(message)s")
 handler.setFormatter(formatter)
 
+
 # Fonction pour créer un nouveau fichier de log si nécessaire
 def create_new_log_file(new_day):
     global handler
@@ -38,10 +39,13 @@ def create_new_log_file(new_day):
 
     # Créer un nouveau gestionnaire pour le nouveau jour
     handler = TimedRotatingFileHandler(
-        os.path.join(log_dir, f"log-{new_day:%Y_%m_%d}.log"), when="midnight", interval=1
+        os.path.join(log_dir, f"log-{new_day:%Y_%m_%d}.log"),
+        when="midnight",
+        interval=1,
     )
     handler.suffix = "%Y-%m-%d"
     logger.addHandler(handler)
+
 
 # Lister les ports série disponibles
 for port in serial.tools.list_ports.comports():
@@ -62,7 +66,8 @@ while True:
 
     # Si des données sont reçues
     if data:
-        
+
+        # Vérifier la date et créer un nouveau fichier de log si nécessaire
         new_day = datetime.date.today()
         if new_day != today:
             today = new_day
@@ -78,7 +83,6 @@ while True:
 
             # Effectuer une requête HTTP GET
             response = requests.request("GET", url)
-        # Vérifier la date et créer un nouveau fichier de log si nécessaire
 
         except ValueError as e:
             logger.error(f"Erreur de formatage de l'URL : {e}")
@@ -89,7 +93,6 @@ while True:
             logger.error(f"Erreur de requête HTTP : {e}")
             print(f"Erreur de requête HTTP : {e}")
             continue
-
 
         # Journaliser le code de retour HTTP
         logger.info(f"{url} - Reponse HTTP : {response.status_code}")
