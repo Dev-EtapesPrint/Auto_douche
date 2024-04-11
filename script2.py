@@ -70,9 +70,6 @@ while True:
             if not url or not urlparse(url).scheme or not urlparse(url).netloc:
                 raise ValueError("URL invalide")
 
-            # Ouverture de l'URL dans un navigateur
-            import webbrowser
-
             webbrowser.open(url)
 
         except ValueError as e:
