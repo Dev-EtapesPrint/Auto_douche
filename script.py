@@ -1,7 +1,19 @@
 import serial
 import serial.tools.list_ports
+import logging
+import datetime
 import requests
+from logging.handlers import TimedRotatingFileHandler
 from urllib.parse import urlparse
+
+logger = logging.getLogger("logs")
+logger.setLevel(logging.INFO)
+handler = TimedRotatingFileHandler("log", when="midnight", interval=1)
+handler.suffix = "%Y%m%d"
+logger.addHandler(handler)
+formatter = logging.Formatter('%(asctime)s - %(message)s')
+handler.setFormatter(formatter)
+
 
 """
 On liste les ports série disponibles sur la machine.
@@ -15,6 +27,7 @@ On essaie de se connecter au port série COM6 à une vitesse de 9600 bauds.
 try:
     ser = serial.Serial(port="COM4", baudrate=9600, timeout=1)
 except serial.SerialException as e:
+    logger.error(f"Erreur de connexion série : {e}")
     print(f"Erreur de connexion série : {e}")
     exit()
 
@@ -50,8 +63,10 @@ while True:
         print(f"Code de retour HTTP : {response.status_code}")
 
         if response.status_code == 200:
+            logger.info(f"- {url} - {response.status_code}")
             # Si le code de retour HTTP est 200, on affiche le contenu de la réponse.
             print("Le serveur a répondu avec succès.")
         else:
+            logger.error(f"- {url} - {response.status_code}")
             # Si le code de retour HTTP est différent de 200, on affiche une erreur.
             print(f"Le serveur a répondu avec une erreur : {response.status_code}")
