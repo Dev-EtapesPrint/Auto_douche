@@ -43,7 +43,7 @@ def create_new_log_file(new_day):
 # Connexion au port série
 try:
     print("Connexion série en cours...")
-    ser = serial.Serial(port="COM4", baudrate=9600, timeout=1)
+    ser = serial.Serial(port="COM6", baudrate=9600, timeout=1)
     print("Connexion série établie")
 except serial.SerialException as e:
     logger.error(f"Erreur de connexion série : {e}")
