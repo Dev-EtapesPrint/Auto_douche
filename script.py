@@ -72,10 +72,10 @@ while True:
         print(f"Code de retour HTTP : {response.status_code}")
 
         if response.status_code == 200:
-            logger.info(f"- {url} - {response.status_code}")
+            logger.info(f"{url} - Reponse HTTP : {response.status_code}")
             # Si le code de retour HTTP est 200, on affiche le contenu de la réponse.
             print("Le serveur a répondu avec succès.")
         else:
-            logger.error(f"- {url} - {response.status_code}")
+            logger.error(f"{url} - Reponse HTTP : {response.status_code}")
             # Si le code de retour HTTP est différent de 200, on affiche une erreur.
             print(f"Le serveur a répondu avec une erreur : {response.status_code}")
