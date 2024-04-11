@@ -1,52 +1,96 @@
 import serial
 import serial.tools.list_ports
+import logging
+import datetime
+import os
 import requests
 from urllib.parse import urlparse
+from logging.handlers import TimedRotatingFileHandler
 
-"""
-On liste les ports série disponibles sur la machine.
-"""
+# Créer un logger
+logger = logging.getLogger("Logger")
+logger.setLevel(logging.INFO)
+
+# Créer un répertoire pour les logs
+log_dir = os.path.join(os.getcwd(), "logs")
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+
+# Déterminer la date actuelle
+today = datetime.date.today()
+
+# Créer un gestionnaire de fichiers pour le jour actuel
+handler = TimedRotatingFileHandler(
+    os.path.join(log_dir, f"log-{today:%Y_%m_%d}"), when="midnight", interval=1
+)
+handler.suffix = "%Y-%m-%d"
+logger.addHandler(handler)
+
+# Créer un format de message de journalisation
+formatter = logging.Formatter("%(asctime)s - %(message)s")
+handler.setFormatter(formatter)
+
+# Fonction pour créer un nouveau fichier de log si nécessaire
+def create_new_log_file(new_day):
+    global handler
+    # Fermer le gestionnaire actuel
+    handler.close()
+
+    # Créer un nouveau gestionnaire pour le nouveau jour
+    handler = TimedRotatingFileHandler(
+        os.path.join(log_dir, f"log-{new_day:%Y_%m_%d}"), when="midnight", interval=1
+    )
+    handler.suffix = "%Y-%m-%d"
+    logger.addHandler(handler)
+
+# Lister les ports série disponibles
 for port in serial.tools.list_ports.comports():
     print(f"{port}")
 
-"""
-On essaie de se connecter au port série COM6 à une vitesse de 9600 bauds.
-"""
+# Essayer de se connecter au port série
 try:
     ser = serial.Serial(port="COM4", baudrate=9600, timeout=1)
 except serial.SerialException as e:
+    logger.error(f"Erreur de connexion série : {e}")
     print(f"Erreur de connexion série : {e}")
     exit()
 
-"""
-Tant que le programme est en cours d'exécution, on lit les données reçues sur le port série.
-"""
+# Boucle principale
 while True:
-    # On lit les données reçues sur le port série.
+    # Lire les données du port série
     data = ser.readline()
-    # Si on a reçu des données.
+
+    # Si des données sont reçues
     if data:
         try:
-            # On décode les données reçues en UTF-8 et on supprime les caractères de fin de ligne.
+            # Décoder les données et supprimer les caractères de fin de ligne
             url = data.decode("utf-8").strip()
-            parsed_url = urlparse(url)
-            # On vérifie que l'URL est bien formée.
-            if not parsed_url.scheme or not parsed_url.netloc:
+
+            # Vérifier si l'URL est valide
+            if not url or not urlparse(url).scheme or not urlparse(url).netloc:
                 raise ValueError("URL invalide")
-        # Si une erreur de formatage de l'URL est levée.
-        except ValueError as e:
-            print(f"Erreur de formatage de l'URL : {e}")
-            continue
 
-        try:
-            # On effectue une requête HTTP GET à l'URL reçue.
+            # Effectuer une requête HTTP GET
             response = requests.request("GET", url)
-        except requests.RequestException as e:
-            # Si une erreur de requête HTTP est levée.
-            print(f"Erreur de requête HTTP : {e}")
+
+        except ValueError as e:
+            logger.error(f"Erreur de formatage de l'URL : {e}")
             continue
 
-        # On affiche le code de retour HTTP de la réponse.
+        except requests.RequestException as e:
+            logger.error(f"Erreur de requête HTTP : {e}")
+            continue
+
+        # Vérifier la date et créer un nouveau fichier de log si nécessaire
+        new_day = datetime.date.today()
+        if new_day != today:
+            today = new_day
+            create_new_log_file(new_day)
+
+        # Journaliser le code de retour HTTP
+        logger.info(f"{url} - Reponse HTTP : {response.status_code}")
+
+        # Afficher le code de retour HTTP
         print(f"Code de retour HTTP : {response.status_code}")
 
         if response.status_code == 200:
