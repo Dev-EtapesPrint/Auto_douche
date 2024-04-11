@@ -16,7 +16,7 @@ log_dir = os.path.join(os.getcwd(), 'logs')
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 handler = TimedRotatingFileHandler(os.path.join(log_dir, "log"), when="midnight", interval=1)
-handler.suffix = "%Y%m%d"
+handler.suffix = "%Y-%m-%d"
 logger.addHandler(handler)
 
 # Créer un format de message de journalisation.
