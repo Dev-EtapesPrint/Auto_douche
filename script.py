@@ -21,7 +21,7 @@ today = datetime.date.today()
 
 # Créer un gestionnaire de fichiers pour le jour actuel
 handler = TimedRotatingFileHandler(
-    os.path.join(log_dir, f"log-{today:%Y_%m_%d}"), when="midnight", interval=1
+    os.path.join(log_dir, f"log-{today:%Y_%m_%d}.log"), when="midnight", interval=1
 )
 handler.suffix = "%Y-%m-%d"
 logger.addHandler(handler)
@@ -38,7 +38,7 @@ def create_new_log_file(new_day):
 
     # Créer un nouveau gestionnaire pour le nouveau jour
     handler = TimedRotatingFileHandler(
-        os.path.join(log_dir, f"log-{new_day:%Y_%m_%d}"), when="midnight", interval=1
+        os.path.join(log_dir, f"log-{new_day:%Y_%m_%d}.log"), when="midnight", interval=1
     )
     handler.suffix = "%Y-%m-%d"
     logger.addHandler(handler)
@@ -62,6 +62,12 @@ while True:
 
     # Si des données sont reçues
     if data:
+        
+        new_day = datetime.date.today()
+        if new_day != today:
+            today = new_day
+            create_new_log_file(new_day)
+
         try:
             # Décoder les données et supprimer les caractères de fin de ligne
             url = data.decode("utf-8").strip()
@@ -72,30 +78,20 @@ while True:
 
             # Effectuer une requête HTTP GET
             response = requests.request("GET", url)
+        # Vérifier la date et créer un nouveau fichier de log si nécessaire
 
         except ValueError as e:
             logger.error(f"Erreur de formatage de l'URL : {e}")
+            print(f"Erreur de formatage de l'URL : {e}")
             continue
 
         except requests.RequestException as e:
             logger.error(f"Erreur de requête HTTP : {e}")
+            print(f"Erreur de requête HTTP : {e}")
             continue
 
-        # Vérifier la date et créer un nouveau fichier de log si nécessaire
-        new_day = datetime.date.today()
-        if new_day != today:
-            today = new_day
-            create_new_log_file(new_day)
 
         # Journaliser le code de retour HTTP
         logger.info(f"{url} - Reponse HTTP : {response.status_code}")
 
-        # Afficher le code de retour HTTP
-        print(f"Code de retour HTTP : {response.status_code}")
-
-        if response.status_code == 200:
-            # Si le code de retour HTTP est 200, on affiche le contenu de la réponse.
-            print("Le serveur a répondu avec succès.")
-        else:
-            # Si le code de retour HTTP est différent de 200, on affiche une erreur.
-            print(f"Le serveur a répondu avec une erreur : {response.status_code}")
+        print(f"{url} - Reponse HTTP : {response.status_code}")
