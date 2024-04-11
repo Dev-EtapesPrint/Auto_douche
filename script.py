@@ -2,15 +2,24 @@ import serial
 import serial.tools.list_ports
 import logging
 import datetime
+import os
 import requests
 from logging.handlers import TimedRotatingFileHandler
 from urllib.parse import urlparse
 
-logger = logging.getLogger("logs")
+# Créer un logger
+logger = logging.getLogger("Logger")
 logger.setLevel(logging.INFO)
-handler = TimedRotatingFileHandler("log", when="midnight", interval=1)
+
+# Créer un gestionnaire de fichiers qui écrit dans un nouveau fichier chaque jour à minuit.
+log_dir = os.path.join(os.getcwd(), 'logs')
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+handler = TimedRotatingFileHandler(os.path.join(log_dir, "log"), when="midnight", interval=1)
 handler.suffix = "%Y%m%d"
 logger.addHandler(handler)
+
+# Créer un format de message de journalisation.
 formatter = logging.Formatter('%(asctime)s - %(message)s')
 handler.setFormatter(formatter)
 
