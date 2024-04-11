@@ -47,9 +47,6 @@ def create_new_log_file(new_day):
     logger.addHandler(handler)
 
 
-# Lister les ports série disponibles
-for port in serial.tools.list_ports.comports():
-    print(f"{port}")
 
 # Essayer de se connecter au port série
 try:
@@ -57,6 +54,10 @@ try:
 except serial.SerialException as e:
     logger.error(f"Erreur de connexion série : {e}")
     print(f"Erreur de connexion série : {e}")
+    # Lister les ports série disponibles
+    for port in serial.tools.list_ports.comports():
+        print(f"{port}")
+    input("Appuyez sur une touche pour quitter...")
     exit()
 
 # Boucle principale
