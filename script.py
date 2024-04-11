@@ -1,9 +1,9 @@
+import os
+import datetime
+import logging
+import requests
 import serial
 import serial.tools.list_ports
-import logging
-import datetime
-import os
-import requests
 from urllib.parse import urlparse
 from logging.handlers import TimedRotatingFileHandler
 
